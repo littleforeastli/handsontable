@@ -247,7 +247,9 @@ function EditorManager(instance, priv, selection) {
     instance.addHook('afterDocumentKeyDown', onKeyDown);
 
     eventManager.addEventListener(document.documentElement, 'keydown', function(event) {
-      instance.runHooks('afterDocumentKeyDown', event);
+      if (!destroyed) {
+        instance.runHooks('afterDocumentKeyDown', event);
+      }
     });
 
     function onDblClick(event, coords, elem) {
@@ -312,7 +314,7 @@ function EditorManager(instance, priv, selection) {
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
 
-    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), instance.runHooks('modifyCol', col));
+    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
     cellProperties = instance.getCellMeta(row, col);
     editorClass = instance.getCellEditor(cellProperties);
 

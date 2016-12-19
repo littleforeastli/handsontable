@@ -90,6 +90,7 @@
   outline-width: 0;
   white-space: pre-line;
   /* preserve new line character in cell */
+  background-clip: padding-box;
 }
 
 .handsontable td.htInvalid {
@@ -115,6 +116,7 @@
 }
 
 .handsontable th:first-child,
+.handsontable th:nth-child(2),
 .handsontable td:first-of-type,
 .handsontable .htNoFrame + th,
 .handsontable .htNoFrame + td {
@@ -409,21 +411,6 @@ CheckboxRenderer
   width: 100%;
 }
 
-/*
-Comment For Cell
-*/
-.htCommentCell{
-  position: relative;
-}
-.htCommentCell:after{
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  border-left: 6px solid transparent;
-  border-top: 6px solid red;
-}
-
 @-webkit-keyframes opacity-hide {
   from {
     opacity: 1;
@@ -571,15 +558,6 @@ Cell borders
 .htBordered.htLeftBorderSolid {
   border-left-style: solid;
   border-left-color: #000;
-}
-
-.htCommentTextArea{
-  -moz-box-shadow: 1px 1px 2px #bbb;
-  -webkit-box-shadow: 1px 1px 2px #bbb;
-  background-color: #FFFACD;
-  border: 1px solid #999;
-  box-shadow: 1px 1px 2px #bbb;
-  font-family: sans-serif;
 }
 
 .handsontable tbody tr th:nth-last-child(2) {

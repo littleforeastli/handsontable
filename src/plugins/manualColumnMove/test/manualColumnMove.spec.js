@@ -80,6 +80,31 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
+    it('should update columnsMapper when updateSettings change numbers of columns', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+
+      updateSettings({
+        columns: [
+          {data: 2},
+          {data: 0},
+          {data: 1},
+        ]
+      });
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+    });
+
     it('should reset column order with updateSettings when undefined is passed', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -239,6 +264,38 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
     });
 
+    it('should properly scrolling viewport if mouse is over part-visible cell', function (done) {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 20),
+        colHeaders: true,
+        rowHeaders: true,
+        manualColumnMove: true,
+        width: 600,
+        height: 600,
+        colWidths: 47
+      });
+
+      hot.selectCell(0, 19);
+
+      setTimeout(function () {
+        expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeGreaterThan(8);
+
+        var $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
+
+        $rowsHeaders.eq(2).simulate('mousedown');
+        $rowsHeaders.eq(2).simulate('mouseup');
+        $rowsHeaders.eq(2).simulate('mousedown');
+        $rowsHeaders.eq(1).simulate('mouseover');
+        $rowsHeaders.eq(1).simulate('mousemove');
+        $rowsHeaders.eq(1).simulate('mouseup');
+      }, 50);
+
+      setTimeout(function () {
+        expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeLessThan(9);
+        done();
+      }, 150);
+    });
+
     it("moving column should keep cell meta created using cells function", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -281,7 +338,28 @@ describe('manualColumnMove', function () {
       expect(htCore.find('tbody tr:eq(1) td:eq(1)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
     });
   });
-  xdescribe('undoRedo', function() {
+
+  describe('copy-paste', function() {
+    it('should create new columns is are needed', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnMove: true,
+      });
+      var changesSet = [
+        [3, 4, 'A1'],
+        [3, 5, 'B1'],
+        [3, 6, 'C1'],
+        [3, 7, 'D1'],
+      ];
+
+      // unfortunately couse of security rules, we can't simulate native mechanism (e.g. CTRL+C -> CTRL+V)
+      hot.setDataAtCell(changesSet, void 0, void 0, 'paste');
+      expect(hot.countCols()).toEqual(8)
+    })
+  });
+
+  describe('undoRedo', function() {
     xit('should back changes', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -291,11 +369,11 @@ describe('manualColumnMove', function () {
       hot.getPlugin('manualColumnMove').moveColumn(1, 4);
       hot.render();
 
-      expect(hot.getDataAtCell(1, 3)).toBe('A2');
+      expect(hot.getDataAtCell(1, 3)).toBe('B2');
 
       hot.undo();
 
-      expect(hot.getDataAtCell(1, 1)).toBe('A2');
+      expect(hot.getDataAtCell(1, 3)).toBe('D2');
     });
 
     xit('should revert changes', function () {
