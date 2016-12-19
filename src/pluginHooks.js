@@ -801,6 +801,15 @@ const REGISTERED_HOOKS = [
   'modifyData',
 
   /**
+   * Fired when a data was retrieved or modified.
+   *
+   * @event Hooks#modifyRowSourceData
+   * @since 0.28.0
+   * @param {Number} row Row logical index.
+   */
+  'modifyRowData',
+
+  /**
    * Fired after loading data using the Persistent State plugin.
    *
    * @event Hooks#persistentStateLoad
@@ -1243,6 +1252,15 @@ const REGISTERED_HOOKS = [
    * @param {Object} element The detached element.
    */
   'afterDetachChild',
+
+  /**
+   * Fired after the editor is opened and rendered.
+   *
+   * @event Hooks#afterBeginEditing
+   * @param {Number} row Row index of the edited cell.
+   * @param {Number} column Column index of the edited cell.
+   */
+  'afterBeginEditing'
 ];
 
 import {arrayEach} from './helpers/array';

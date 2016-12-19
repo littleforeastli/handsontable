@@ -575,7 +575,8 @@ var $WalkontableViewportColumnsCalculator = WalkontableViewportColumnsCalculator
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startColumn = i;
       }
-      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + viewportWidth) {
+      var compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
+      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
         if (this.startColumn == null) {
           this.startColumn = i;
         }
@@ -944,22 +945,22 @@ var $WalkontableCellRange = WalkontableCellRange;
     }
   },
   setDirection: function(direction) {
+    var $__2,
+        $__3,
+        $__4,
+        $__5;
     switch (direction) {
       case 'NW-SE':
-        this.from = this.getTopLeftCorner();
-        this.to = this.getBottomRightCorner();
+        ($__2 = [this.getTopLeftCorner(), this.getBottomRightCorner()], this.from = $__2[0], this.to = $__2[1], $__2);
         break;
       case 'NE-SW':
-        this.from = this.getTopRightCorner();
-        this.to = this.getBottomLeftCorner();
+        ($__3 = [this.getTopRightCorner(), this.getBottomLeftCorner()], this.from = $__3[0], this.to = $__3[1], $__3);
         break;
       case 'SE-NW':
-        this.from = this.getBottomRightCorner();
-        this.to = this.getTopLeftCorner();
+        ($__4 = [this.getBottomRightCorner(), this.getTopLeftCorner()], this.from = $__4[0], this.to = $__4[1], $__4);
         break;
       case 'SW-NE':
-        this.from = this.getBottomLeftCorner();
-        this.to = this.getTopRightCorner();
+        ($__5 = [this.getBottomLeftCorner(), this.getTopRightCorner()], this.from = $__5[0], this.to = $__5[1], $__5);
         break;
     }
   },
@@ -1278,12 +1279,15 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_function__,
     $___46__46__47__46__46__47__46__46__47_helpers_47_browser__,
     $___46__46__47__46__46__47__46__46__47_eventManager__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
     closestDown = $__0.closestDown,
     hasClass = $__0.hasClass,
-    isChildOf = $__0.isChildOf;
+    isChildOf = $__0.isChildOf,
+    getParent = $__0.getParent;
+var partial = ($___46__46__47__46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_function__}).partial;
 var isMobileBrowser = ($___46__46__47__46__46__47__46__46__47_helpers_47_browser__ = _dereq_("helpers/browser"), $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_browser__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_browser__}).isMobileBrowser;
 var eventManagerObject = ($___46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47_eventManager__}).eventManager;
 function WalkontableEvent(instance) {
@@ -1293,9 +1297,15 @@ function WalkontableEvent(instance) {
   var dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
   var onMouseDown = function(event) {
-    var cell = that.parentCell(event.realTarget);
-    if (hasClass(event.realTarget, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, event.realTarget);
+    var activeElement = document.activeElement;
+    var getParentNode = partial(getParent, event.realTarget);
+    var realTarget = event.realTarget;
+    if (realTarget === activeElement || getParentNode(0) === activeElement || getParentNode(1) === activeElement) {
+      return;
+    }
+    var cell = that.parentCell(realTarget);
+    if (hasClass(realTarget, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD) {
       if (that.instance.hasSetting('onCellMouseDown')) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
@@ -1437,7 +1447,7 @@ WalkontableEvent.prototype.parentCell = function(elem) {
 window.WalkontableEvent = WalkontableEvent;
 
 //# 
-},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46}],9:[function(_dereq_,module,exports){
+},{"eventManager":41,"helpers/browser":43,"helpers/dom/element":46,"helpers/function":49}],9:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableColumnFilter: {get: function() {
@@ -1533,11 +1543,13 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
     getScrollableElement = $__0.getScrollableElement,
     getTrimmingContainer = $__0.getTrimmingContainer;
 var defineGetter = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_object__}).defineGetter;
+var arrayEach = ($___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var eventManagerObject = ($___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47__46__46__47__46__46__47_eventManager__}).eventManager;
 var registeredOverlays = {};
 var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
@@ -1551,11 +1563,20 @@ var WalkontableOverlay = function WalkontableOverlay(wotInstance) {
   this.holder = this.wot.wtTable.holder;
   this.wtRootElement = this.wot.wtTable.wtRootElement;
   this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-  this.needFullRender = this.shouldBeRendered();
   this.areElementSizesAdjusted = false;
+  this.updateStateOfRendering();
 };
 var $WalkontableOverlay = WalkontableOverlay;
 ($traceurRuntime.createClass)(WalkontableOverlay, {
+  updateStateOfRendering: function() {
+    var previousState = this.needFullRender;
+    this.needFullRender = this.shouldBeRendered();
+    var changed = previousState !== this.needFullRender;
+    if (changed && !this.needFullRender) {
+      this.reset();
+    }
+    return changed;
+  },
   shouldBeRendered: function() {
     return true;
   },
@@ -1599,6 +1620,20 @@ var $WalkontableOverlay = WalkontableOverlay;
       this.clone.draw(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
+  },
+  reset: function() {
+    if (!this.clone) {
+      return;
+    }
+    var holder = this.clone.wtTable.holder;
+    var hider = this.clone.wtTable.hider;
+    var holderStyle = holder.style;
+    var hidderStyle = hider.style;
+    var rootStyle = holder.parentNode.style;
+    arrayEach([holderStyle, hidderStyle, rootStyle], (function(style) {
+      style.width = '';
+      style.height = '';
+    }));
   },
   destroy: function() {
     eventManagerObject(this.clone).destroy();
@@ -1645,7 +1680,7 @@ var $WalkontableOverlay = WalkontableOverlay;
 window.WalkontableOverlay = WalkontableOverlay;
 
 //# 
-},{"eventManager":41,"helpers/dom/element":46,"helpers/object":52}],12:[function(_dereq_,module,exports){
+},{"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"helpers/object":52}],12:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableDebugOverlay: {get: function() {
@@ -2173,24 +2208,7 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.wot.update('scrollbarWidth', getScrollbarWidth());
   this.wot.update('scrollbarHeight', getScrollbarWidth());
   this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
-  this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
-  if (typeof WalkontableBottomOverlay === 'undefined') {
-    this.bottomOverlay = {needFullRender: false};
-  } else {
-    this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
-  }
-  this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
-  if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
-    this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
-  }
-  if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender && typeof WalkontableBottomLeftCornerOverlay !== 'undefined') {
-    this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
-  } else {
-    this.bottomLeftCornerOverlay = {needFullRender: false};
-  }
-  if (this.wot.getSetting('debug')) {
-    this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
-  }
+  this.prepareOverlays();
   this.destroyed = false;
   this.keyPressed = false;
   this.spreaderLastSize = {
@@ -2231,6 +2249,58 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   this.registerListeners();
 };
 ($traceurRuntime.createClass)(WalkontableOverlays, {
+  prepareOverlays: function() {
+    var syncScroll = false;
+    if (this.topOverlay) {
+      syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.topOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP, this.wot);
+    }
+    if (typeof WalkontableBottomOverlay === 'undefined') {
+      this.bottomOverlay = {
+        needFullRender: false,
+        updateStateOfRendering: (function() {
+          return false;
+        })
+      };
+    }
+    if (typeof WalkontableBottomLeftCornerOverlay === 'undefined') {
+      this.bottomLeftCornerOverlay = {
+        needFullRender: false,
+        updateStateOfRendering: (function() {
+          return false;
+        })
+      };
+    }
+    if (this.bottomOverlay) {
+      syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.bottomOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM, this.wot);
+    }
+    if (this.leftOverlay) {
+      syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.leftOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_LEFT, this.wot);
+    }
+    if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.topLeftCornerOverlay) {
+        syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.topLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, this.wot);
+      }
+    }
+    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.bottomLeftCornerOverlay) {
+        syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+      } else {
+        this.bottomLeftCornerOverlay = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
+      }
+    }
+    if (this.wot.getSetting('debug') && !this.debug) {
+      this.debug = WalkontableOverlay.createOverlay(WalkontableOverlay.CLONE_DEBUG, this.wot);
+    }
+    return syncScroll;
+  },
   refreshAll: function() {
     if (!this.wot.drawn) {
       return;
@@ -2295,6 +2365,16 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         return $__5.onTableScroll(event);
       })]);
     }
+    if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__5.onTableScroll(event);
+      })]);
+    }
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
+      listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (function(event) {
+        return $__5.onTableScroll(event);
+      })]);
+    }
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
       listenersToRegister.push([window, 'wheel', (function(event) {
         var overlay;
@@ -2306,12 +2386,12 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
           overlay = 'bottom';
         } else if ($__5.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'left';
+        } else if ($__5.topLeftCornerOverlay && $__5.topLeftCornerOverlay.clone && $__5.topLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'topLeft';
+        } else if ($__5.bottomLeftCornerOverlay && $__5.bottomLeftCornerOverlay.clone && $__5.bottomLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'bottomLeft';
         }
-        if (overlay == 'top' && deltaY !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'left' && deltaX !== 0) {
-          event.preventDefault();
-        } else if (overlay == 'bottom' && deltaY !== 0) {
+        if ((overlay == 'top' && deltaY !== 0) || (overlay == 'left' && deltaX !== 0) || (overlay == 'bottom' && deltaY !== 0) || ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
           event.preventDefault();
         }
       })]);
@@ -2356,11 +2436,15 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var topOverlay = this.topOverlay.clone.wtTable.holder;
     var bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
     var leftOverlay = this.leftOverlay.clone.wtTable.holder;
-    var eventMockup = {type: 'wheel'};
-    var tempElem = event.target;
+    var topLeftCornerOverlay = this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone ? this.topLeftCornerOverlay.clone.wtTable.holder : null;
+    var bottomLeftCornerOverlay = this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone ? this.bottomLeftCornerOverlay.clone.wtTable.holder : null;
+    var mouseWheelSpeedRatio = -0.2;
     var deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     var deltaX = event.wheelDeltaX || (-1) * event.deltaX;
-    var parentHolder;
+    var parentHolder = null;
+    var eventMockup = {type: 'wheel'};
+    var tempElem = event.target;
+    var delta = null;
     if (event.deltaMode === 1) {
       deltaY = deltaY * 120;
       deltaX = deltaX * 120;
@@ -2373,17 +2457,22 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
       tempElem = tempElem.parentNode;
     }
     eventMockup.target = parentHolder;
-    if (parentHolder == topOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-    } else if (parentHolder == bottomOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-    } else if (parentHolder == leftOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaX);
+    if (parentHolder === topLeftCornerOverlay || parentHolder === bottomLeftCornerOverlay) {
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaX, 'x');
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * deltaY, 'y');
+    } else {
+      if (parentHolder === topOverlay || parentHolder === bottomOverlay) {
+        delta = deltaY;
+      } else if (parentHolder === leftOverlay) {
+        delta = deltaX;
+      }
+      this.syncScrollPositions(eventMockup, mouseWheelSpeedRatio * delta);
     }
     return false;
   },
   syncScrollPositions: function(event) {
     var fakeScrollValue = arguments[1] !== (void 0) ? arguments[1] : null;
+    var fakeScrollDirection = arguments[2] !== (void 0) ? arguments[2] : null;
     if (this.destroyed) {
       return;
     }
@@ -2398,6 +2487,8 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var scrollValueChanged = false;
     var topOverlay;
     var leftOverlay;
+    var topLeftCornerOverlay;
+    var bottomLeftCornerOverlay;
     var bottomOverlay;
     var delegatedScroll = false;
     var preventOverflow = this.wot.getSetting('preventOverflow');
@@ -2409,6 +2500,12 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     }
     if (this.leftOverlay.needFullRender) {
       leftOverlay = this.leftOverlay.clone.wtTable.holder;
+    }
+    if (this.leftOverlay.needFullRender && this.topOverlay.needFullRender) {
+      topLeftCornerOverlay = this.topLeftCornerOverlay.clone.wtTable.holder;
+    }
+    if (this.leftOverlay.needFullRender && this.bottomOverlay.needFullRender) {
+      bottomLeftCornerOverlay = this.bottomLeftCornerOverlay.clone.wtTable.holder;
     }
     if (target === document) {
       target = window;
@@ -2522,6 +2619,15 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
         scrollValueChanged = true;
         masterVertical.scrollLeft += fakeScrollValue;
       }
+    } else if (target === topLeftCornerOverlay || target === bottomLeftCornerOverlay) {
+      if (fakeScrollValue !== null) {
+        scrollValueChanged = true;
+        if (fakeScrollDirection === 'x') {
+          masterVertical.scrollLeft += fakeScrollValue;
+        } else if (fakeScrollDirection === 'y') {
+          masterVertical.scrollTop += fakeScrollValue;
+        }
+      }
     }
     if (!this.keyPressed && scrollValueChanged && event.type === 'scroll') {
       if (this.delegatedScrollCallback) {
@@ -2536,11 +2642,17 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
   },
   syncScrollWithMaster: function() {
     var master = this.topOverlay.mainTableScrollableElement;
+    var $__7 = master,
+        scrollLeft = $__7.scrollLeft,
+        scrollTop = $__7.scrollTop;
     if (this.topOverlay.needFullRender) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = master.scrollLeft;
+      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
+    }
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
     }
     if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = master.scrollTop;
+      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
     }
   },
   updateMainScrollableElements: function() {
@@ -3098,6 +3210,7 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_helpers_47_function__,
     $__cell_47_coords__,
     $__cell_47_range__,
     $__filter_47_column__,
@@ -3113,12 +3226,14 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     removeTextNodes = $__0.removeTextNodes,
     overlayContainsElement = $__0.overlayContainsElement,
     closest = $__0.closest;
+var isFunction = ($___46__46__47__46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_function__}).isFunction;
 var WalkontableCellCoords = ($__cell_47_coords__ = _dereq_("cell/coords"), $__cell_47_coords__ && $__cell_47_coords__.__esModule && $__cell_47_coords__ || {default: $__cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__cell_47_range__ = _dereq_("cell/range"), $__cell_47_range__ && $__cell_47_range__.__esModule && $__cell_47_range__ || {default: $__cell_47_range__}).WalkontableCellRange;
 var WalkontableColumnFilter = ($__filter_47_column__ = _dereq_("filter/column"), $__filter_47_column__ && $__filter_47_column__.__esModule && $__filter_47_column__ || {default: $__filter_47_column__}).WalkontableColumnFilter;
 var WalkontableRowFilter = ($__filter_47_row__ = _dereq_("filter/row"), $__filter_47_row__ && $__filter_47_row__.__esModule && $__filter_47_row__ || {default: $__filter_47_row__}).WalkontableRowFilter;
 var WalkontableTableRenderer = ($__tableRenderer__ = _dereq_("tableRenderer"), $__tableRenderer__ && $__tableRenderer__.__esModule && $__tableRenderer__ || {default: $__tableRenderer__}).WalkontableTableRenderer;
 var WalkontableTable = function WalkontableTable(wotInstance, table) {
+  var $__7 = this;
   this.wot = wotInstance;
   this.instance = this.wot;
   this.TABLE = table;
@@ -3139,6 +3254,11 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
   this.rowFilter = null;
   this.columnFilter = null;
+  this.correctHeaderWidth = false;
+  var origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
+  this.wot.wtSettings.settings.rowHeaderWidth = (function() {
+    return $__7._modifyRowHeaderWidth(origRowHeaderWidth);
+  });
 };
 ($traceurRuntime.createClass)(WalkontableTable, {
   fixTableDomTree: function() {
@@ -3226,17 +3346,34 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     return !!this.wot.cloneSource;
   },
   draw: function(fastDraw) {
+    var $__9 = this.wot,
+        wtOverlays = $__9.wtOverlays,
+        wtViewport = $__9.wtViewport;
     var totalRows = this.instance.getSetting('totalRows');
+    var rowHeaders = this.wot.getSetting('rowHeaders').length;
+    var columnHeaders = this.wot.getSetting('columnHeaders').length;
+    var syncScroll = false;
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
-      fastDraw = this.wot.wtViewport.createRenderCalculators(fastDraw);
+      fastDraw = wtViewport.createRenderCalculators(fastDraw);
+      if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
+        var leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+        var previousState = this.correctHeaderWidth;
+        this.correctHeaderWidth = leftScrollPos > 0;
+        if (previousState !== this.correctHeaderWidth) {
+          fastDraw = false;
+        }
+      }
+    }
+    if (!this.isWorkingOnClone()) {
+      syncScroll = wtOverlays.prepareOverlays();
     }
     if (fastDraw) {
       if (!this.isWorkingOnClone()) {
-        this.wot.wtViewport.createVisibleCalculators();
+        wtViewport.createVisibleCalculators();
       }
-      if (this.wot.wtOverlays) {
-        this.wot.wtOverlays.refresh(true);
+      if (wtOverlays) {
+        wtOverlays.refresh(true);
       }
     } else {
       if (this.isWorkingOnClone()) {
@@ -3250,32 +3387,35 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
       } else if (WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) || WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
-        startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+        startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       var startColumn;
       if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
-        startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+        startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
-      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
+      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, columnHeaders);
+      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw();
     }
     this.refreshSelections(fastDraw);
     if (!this.isWorkingOnClone()) {
-      this.wot.wtOverlays.topOverlay.resetFixedPosition();
-      if (this.wot.wtOverlays.bottomOverlay.clone) {
-        this.wot.wtOverlays.bottomOverlay.resetFixedPosition();
+      wtOverlays.topOverlay.resetFixedPosition();
+      if (wtOverlays.bottomOverlay.clone) {
+        wtOverlays.bottomOverlay.resetFixedPosition();
       }
-      this.wot.wtOverlays.leftOverlay.resetFixedPosition();
-      if (this.wot.wtOverlays.topLeftCornerOverlay) {
-        this.wot.wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      wtOverlays.leftOverlay.resetFixedPosition();
+      if (wtOverlays.topLeftCornerOverlay) {
+        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
       }
-      if (this.instance.wtOverlays.bottomLeftCornerOverlay && this.instance.wtOverlays.bottomLeftCornerOverlay.clone) {
-        this.wot.wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
+        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
+    }
+    if (syncScroll) {
+      wtOverlays.syncScrollWithMaster();
     }
     this.wot.drawn = true;
     return this;
@@ -3312,8 +3452,8 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
         }
       }
     }
-    for (var i$__7 = 0; i$__7 < len; i$__7++) {
-      this.wot.selections[i$__7].draw(this.wot, fastDraw);
+    for (var i$__10 = 0; i$__10 < len; i$__10++) {
+      this.wot.selections[i$__10].draw(this.wot, fastDraw);
     }
   },
   getCell: function(coords) {
@@ -3487,13 +3627,32 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
       }
     }
     return width;
+  },
+  _modifyRowHeaderWidth: function(rowHeaderWidthFactory) {
+    var widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
+    if (Array.isArray(widths)) {
+      widths = $traceurRuntime.spread(widths);
+      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
+    } else {
+      widths = this._correctRowHeaderWidth(widths);
+    }
+    return widths;
+  },
+  _correctRowHeaderWidth: function(width) {
+    if (typeof width !== 'number') {
+      width = this.wot.getSetting('defaultColumnWidth');
+    }
+    if (this.correctHeaderWidth) {
+      width++;
+    }
+    return width;
   }
 }, {});
 ;
 window.WalkontableTable = WalkontableTable;
 
 //# 
-},{"cell/coords":5,"cell/range":6,"filter/column":9,"filter/row":10,"helpers/dom/element":46,"tableRenderer":21}],21:[function(_dereq_,module,exports){
+},{"cell/coords":5,"cell/range":6,"filter/column":9,"filter/row":10,"helpers/dom/element":46,"helpers/function":49,"tableRenderer":21}],21:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableTableRenderer: {get: function() {
@@ -3585,17 +3744,20 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         this.wot.wtViewport.containerWidth = null;
         var firstRendered = this.wtTable.getFirstRenderedColumn();
         var lastRendered = this.wtTable.getLastRenderedColumn();
+        var defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
         var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
-        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting) || rowHeaderWidthSetting;
+        rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
         if (rowHeaderWidthSetting != null) {
           for (var i = 0; i < this.rowHeaderCount; i++) {
-            this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+            var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+            width = width == null ? defaultColumnWidth : width;
+            this.COLGROUP.childNodes[i].style.width = width + 'px';
           }
         }
         for (var i$__2 = firstRendered; i$__2 < lastRendered; i$__2++) {
-          var width = this.wtTable.getStretchedColumnWidth(i$__2);
+          var width$__3 = this.wtTable.getStretchedColumnWidth(i$__2);
           var renderedIndex = this.columnFilter.sourceToRendered(i$__2);
-          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
+          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width$__3 + 'px';
         }
       }
       this.wot.getSetting('onDraw', true);
@@ -3703,7 +3865,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     for (var i = 0,
         len = columnHeaders.length; i < len; i++) {
       if (oversizedColumnHeaders[i]) {
-        if (children[i].childNodes.length === 0) {
+        if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
         children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
@@ -3766,20 +3928,23 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var scrollbarCompensation = 0;
     var sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     var mainHolder = sourceInstance.wtTable.holder;
+    var defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
+    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
     if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
       scrollbarCompensation = getScrollbarWidth();
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
-    var rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
-    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting) || rowHeaderWidthSetting;
+    rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
     if (rowHeaderWidthSetting != null) {
       for (var i = 0; i < this.rowHeaderCount; i++) {
-        this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
+        var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
+        width = width == null ? defaultColumnWidth : width;
+        this.COLGROUP.childNodes[i].style.width = width + 'px';
       }
     }
     for (var renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
-      var width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+      var width$__4 = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width$__4 + 'px';
     }
   },
   appendToTbody: function(TR) {
@@ -3880,7 +4045,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       var theadChildrenLength = this.THEAD.childNodes.length;
       if (theadChildrenLength > this.columnHeaders.length) {
-        for (var i$__3 = this.columnHeaders.length; i$__3 < theadChildrenLength; i$__3++) {
+        for (var i$__5 = this.columnHeaders.length; i$__5 < theadChildrenLength; i$__5++) {
           this.THEAD.removeChild(this.THEAD.lastChild);
         }
       }
@@ -4305,9 +4470,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Thu Sep 29 2016 14:23:14 GMT+0200 (CEST)';
+Handsontable.buildDate = 'Tue Dec 13 2016 10:53:44 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.28.1';
+Handsontable.version = '0.29.1';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -5184,10 +5349,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               numbro.culture(cellProperties.language);
             }
             var delimiters = numbro.cultureData(numbro.culture()).delimiters;
-            if (new RegExp('^\\' + delimiters.decimal + '[0-9]+$').test(changes[i][3] + '')) {
-              changes[i][3] = '0' + changes[i][3];
-            }
-            if (numbro.validate(changes[i][3]) || !isNaN(parseFloat(changes[i][3]))) {
+            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
+              changes[i][3] = parseFloat(changes[i][3]);
+            } else {
               changes[i][3] = numbro().unformat(changes[i][3]);
             }
           }
@@ -5230,6 +5394,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       return;
     }
     for (; 0 <= i; i--) {
+      var skipThisChange = false;
       if (changes[i] === null) {
         changes.splice(i, 1);
         continue;
@@ -5239,8 +5404,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          datamap.createRow();
+          var numberOfCreatedRows = datamap.createRow();
+          if (numberOfCreatedRows === 0) {
+            skipThisChange = true;
+            break;
+          }
         }
+      }
+      if (skipThisChange) {
+        continue;
       }
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
@@ -5382,28 +5554,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
   };
   this.loadData = function(data) {
-    if (typeof data === 'object' && data !== null) {
-      if (!(data.push && data.splice)) {
-        data = [data];
-      }
-    } else if (data === null) {
-      data = [];
-      var row;
-      for (var r = 0,
-          rlen = priv.settings.startRows; r < rlen; r++) {
-        row = [];
-        for (var c = 0,
-            clen = priv.settings.startCols; c < clen; c++) {
-          row.push(null);
-        }
-        data.push(row);
-      }
-    } else {
-      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
-    }
-    priv.isPopulated = false;
-    GridSettings.prototype.data = data;
-    if (Array.isArray(priv.settings.dataSchema) || Array.isArray(data[0])) {
+    if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
     } else if (isFunction(priv.settings.dataSchema)) {
       instance.dataType = 'function';
@@ -5414,6 +5565,41 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.destroy();
     }
     datamap = new DataMap(instance, priv, GridSettings);
+    if (typeof data === 'object' && data !== null) {
+      if (!(data.push && data.splice)) {
+        data = [data];
+      }
+    } else if (data === null) {
+      data = [];
+      var row;
+      var r = 0;
+      var rlen = 0;
+      var dataSchema = datamap.getSchema();
+      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+          row = deepClone(dataSchema);
+          data.push(row);
+        } else if (instance.dataType === 'array') {
+          row = deepClone(dataSchema[0]);
+          data.push(row);
+        } else {
+          row = [];
+          for (var c = 0,
+              clen = priv.settings.startCols; c < clen; c++) {
+            row.push(null);
+          }
+          data.push(row);
+        }
+      }
+    } else {
+      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
+    }
+    priv.isPopulated = false;
+    GridSettings.prototype.data = data;
+    if (Array.isArray(data[0])) {
+      instance.dataType = 'array';
+    }
+    datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
@@ -6093,6 +6279,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     selection.deselect();
   };
   this.scrollViewportTo = function(row, column) {
+    var snapToBottom = arguments[2] !== (void 0) ? arguments[2] : false;
+    var snapToRight = arguments[3] !== (void 0) ? arguments[3] : false;
     if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
       return false;
     }
@@ -6101,16 +6289,16 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     var result = false;
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.scrollVertical(row);
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
       result = true;
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.scrollVertical(row);
+      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
       result = true;
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.scrollHorizontal(column);
+      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
       result = true;
     }
     return result;
@@ -6325,6 +6513,7 @@ DefaultSettings.prototype = {
   correctFormat: false,
   defaultDate: void 0,
   strict: void 0,
+  allowHtml: false,
   renderAllRows: void 0,
   preventOverflow: false,
   bindRowsWithHeaders: void 0,
@@ -6393,7 +6582,7 @@ function DataMap(instance, priv, GridSettings) {
   this.cachedLength = null;
   this.skipCache = false;
   this.latestSourceRowsCount = 0;
-  if (this.dataSource[0]) {
+  if (this.dataSource && this.dataSource[0]) {
     this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
   } else {
     this.duckSchema = {};
@@ -6699,7 +6888,7 @@ DataMap.prototype.filterData = function(index, amount) {
 DataMap.prototype.get = function(row, prop) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row);
   var dataRow = this.dataSource[row];
-  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'get');
+  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   var value = null;
   if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
@@ -6740,7 +6929,7 @@ DataMap.prototype.getCopyable = function(row, prop) {
 DataMap.prototype.set = function(row, prop, value, source) {
   row = Handsontable.hooks.run(this.instance, 'modifyRow', row, source || 'datamapGet');
   var dataRow = this.dataSource[row];
-  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'set', source);
+  var modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   if (Handsontable.hooks.has('modifyData', this.instance)) {
     var valueHolder = createObjectPropListener(value);
@@ -6957,8 +7146,17 @@ var DataSource = function DataSource(hotInstance) {
   },
   getAtCell: function(row, column) {
     var result = null;
-    if (this.data[row]) {
-      result = this.data[row][this.colToProp(column)];
+    var modifyRowData = this.hot.runHooks('modifyRowData', row);
+    var dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
+    if (dataRow) {
+      var prop = this.colToProp(column);
+      if (typeof prop === 'string') {
+        result = getProperty(dataRow, prop);
+      } else if (typeof prop === 'function') {
+        result = prop(this.data.slice(row, row + 1)[0]);
+      } else {
+        result = dataRow[prop];
+      }
     }
     return result;
   },
@@ -7228,7 +7426,9 @@ function EditorManager(instance, priv, selection) {
   function init() {
     instance.addHook('afterDocumentKeyDown', onKeyDown);
     eventManager.addEventListener(document.documentElement, 'keydown', function(event) {
-      instance.runHooks('afterDocumentKeyDown', event);
+      if (!destroyed) {
+        instance.runHooks('afterDocumentKeyDown', event);
+      }
     });
     function onDblClick(event, coords, elem) {
       if (elem.nodeName == 'TD') {
@@ -7269,7 +7469,7 @@ function EditorManager(instance, priv, selection) {
     col = priv.selRange.highlight.col;
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
-    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), instance.runHooks('modifyCol', col));
+    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
     cellProperties = instance.getCellMeta(row, col);
     editorClass = instance.getCellEditor(cellProperties);
     if (editorClass) {
@@ -7451,9 +7651,10 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.prop = prop;
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
-  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body) {
+  var invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
     document.activeElement.blur();
-  } else if (!document.activeElement) {
+  } else if (invalidActiveElement) {
     document.body.focus();
   }
   this.state = Handsontable.EditorState.VIRGIN;
@@ -7505,6 +7706,7 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
   this._opened = true;
   this.focus();
   this.instance.view.render();
+  this.instance.runHooks('afterBeginEditing', this.row, this.col);
 };
 BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, callback) {
   var _this = this,
@@ -7619,6 +7821,7 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47_helpers_47_unicode__,
     $___46__46__47_helpers_47_mixed__,
+    $___46__46__47_helpers_47_string__,
     $___46__46__47_helpers_47_array__,
     $___46__46__47_helpers_47_dom_47_element__,
     $___46__46__47_editors__,
@@ -7627,17 +7830,21 @@ var $__0 = ($___46__46__47_helpers_47_unicode__ = _dereq_("helpers/unicode"), $_
     KEY_CODES = $__0.KEY_CODES,
     isPrintableChar = $__0.isPrintableChar;
 var stringify = ($___46__46__47_helpers_47_mixed__ = _dereq_("helpers/mixed"), $___46__46__47_helpers_47_mixed__ && $___46__46__47_helpers_47_mixed__.__esModule && $___46__46__47_helpers_47_mixed__ || {default: $___46__46__47_helpers_47_mixed__}).stringify;
-var pivot = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}).pivot;
-var $__3 = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__3.addClass,
-    getCaretPosition = $__3.getCaretPosition,
-    getScrollbarWidth = $__3.getScrollbarWidth,
-    getSelectionEndPosition = $__3.getSelectionEndPosition,
-    outerWidth = $__3.outerWidth,
-    outerHeight = $__3.outerHeight,
-    offset = $__3.offset,
-    getTrimmingContainer = $__3.getTrimmingContainer,
-    setCaretPosition = $__3.setCaretPosition;
+var stripTags = ($___46__46__47_helpers_47_string__ = _dereq_("helpers/string"), $___46__46__47_helpers_47_string__ && $___46__46__47_helpers_47_string__.__esModule && $___46__46__47_helpers_47_string__ || {default: $___46__46__47_helpers_47_string__}).stripTags;
+var $__3 = ($___46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47_helpers_47_array__ && $___46__46__47_helpers_47_array__.__esModule && $___46__46__47_helpers_47_array__ || {default: $___46__46__47_helpers_47_array__}),
+    pivot = $__3.pivot,
+    arrayFilter = $__3.arrayFilter,
+    arrayMap = $__3.arrayMap;
+var $__4 = ($___46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47_helpers_47_dom_47_element__ && $___46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__4.addClass,
+    getCaretPosition = $__4.getCaretPosition,
+    getScrollbarWidth = $__4.getScrollbarWidth,
+    getSelectionEndPosition = $__4.getSelectionEndPosition,
+    outerWidth = $__4.outerWidth,
+    outerHeight = $__4.outerHeight,
+    offset = $__4.offset,
+    getTrimmingContainer = $__4.getTrimmingContainer,
+    setCaretPosition = $__4.setCaretPosition;
 var registerEditor = ($___46__46__47_editors__ = _dereq_("editors"), $___46__46__47_editors__ && $___46__46__47_editors__.__esModule && $___46__46__47_editors__ || {default: $___46__46__47_editors__}).registerEditor;
 var HandsontableEditor = ($__handsontableEditor__ = _dereq_("handsontableEditor"), $__handsontableEditor__ && $__handsontableEditor__.__esModule && $__handsontableEditor__ || {default: $__handsontableEditor__}).HandsontableEditor;
 var AutocompleteEditor = HandsontableEditor.prototype.extend();
@@ -7687,18 +7894,21 @@ AutocompleteEditor.prototype.open = function() {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer: function(TD, row, col, prop, value) {
-      var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+    afterRenderer: function(TD, row, col, prop, value, cellProperties) {
+      var $__8 = _this.cellProperties,
+          filteringCaseSensitive = $__8.filteringCaseSensitive,
+          allowHtml = $__8.allowHtml;
       var indexOfMatch;
       var match;
       value = stringify(value);
-      if (value) {
-        indexOfMatch = caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
-        if (indexOfMatch != -1) {
+      if (value && !allowHtml) {
+        indexOfMatch = filteringCaseSensitive === true ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
+        if (indexOfMatch !== -1) {
           match = value.substr(indexOfMatch, _this.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+          value = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
+      TD.innerHTML = value;
     },
     autoColumnSize: true,
     modifyColWidth: function(width, col) {
@@ -7721,30 +7931,24 @@ AutocompleteEditor.prototype.close = function() {
   HandsontableEditor.prototype.close.apply(this, arguments);
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
+  var $__7 = this;
   this.query = query;
-  var source = this.cellProperties.source;
-  var hasFilter = this.cellProperties.filter;
-  var filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+  var $__8 = this.cellProperties,
+      source = $__8.source,
+      filter = $__8.filter,
+      filteringCaseSensitive = $__8.filteringCaseSensitive,
+      allowHtml = $__8.allowHtml;
+  var stripTagsEach = (function(choices) {
+    return arrayMap(choices, (function(choice) {
+      return stripTags(choice);
+    }));
+  });
   if (typeof source == 'function') {
-    var _this = this;
-    source.call(this.cellProperties, query, function(choices) {
-      _this.updateChoicesList(choices);
-    });
+    source.call(this.cellProperties, query, (function(choices) {
+      $__7.updateChoicesList(allowHtml ? choices : stripTagsEach(choices));
+    }));
   } else if (Array.isArray(source)) {
-    var choices;
-    if (!query || hasFilter === false) {
-      choices = source;
-    } else {
-      var lowerCaseQuery = query.toLowerCase();
-      choices = source.filter(function(choice) {
-        if (filteringCaseSensitive) {
-          return choice.toString().indexOf(query) != -1;
-        } else {
-          return choice.toString().toLowerCase().indexOf(lowerCaseQuery) != -1;
-        }
-      });
-    }
-    this.updateChoicesList(choices);
+    this.updateChoicesList(allowHtml ? source : stripTagsEach(source));
   } else {
     this.updateChoicesList([]);
   }
@@ -7760,17 +7964,19 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
   }
+  var orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
   if (filterSetting === false) {
-    if (orderByRelevance) {
+    if (orderByRelevanceLength) {
       highlightIndex = orderByRelevance[0];
-    } else {
-      highlightIndex = 0;
     }
   } else {
     var sorted = [];
     for (var i = 0,
         choicesCount = choices.length; i < choicesCount; i++) {
-      if (orderByRelevance) {
+      if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
+        break;
+      }
+      if (orderByRelevanceLength) {
         sorted.push(choices[orderByRelevance[i]]);
       } else {
         sorted.push(choices[i]);
@@ -7888,7 +8094,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
     return result;
   }
   for (i = 0; i < choicesCount; i++) {
-    currentItem = stringify(choices[i]);
+    currentItem = stripTags(stringify(choices[i]));
     if (caseSensitive) {
       valueIndex = currentItem.indexOf(value);
     } else {
@@ -7947,11 +8153,15 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   }
   return allowed;
 };
+AutocompleteEditor.prototype.discardEditor = function(result) {
+  HandsontableEditor.prototype.discardEditor.apply(this, arguments);
+  this.instance.view.render();
+};
 ;
 registerEditor('autocomplete', AutocompleteEditor);
 
 //# 
-},{"editors":29,"handsontableEditor":35,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/unicode":55}],32:[function(_dereq_,module,exports){
+},{"editors":29,"handsontableEditor":35,"helpers/array":42,"helpers/dom/element":46,"helpers/mixed":50,"helpers/string":54,"helpers/unicode":55}],32:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CheckboxEditor: {get: function() {
@@ -8022,8 +8232,6 @@ var stopPropagation = ($___46__46__47_helpers_47_dom_47_event__ = _dereq_("helpe
 var TextEditor = ($__textEditor__ = _dereq_("textEditor"), $__textEditor__ && $__textEditor__.__esModule && $__textEditor__ || {default: $__textEditor__}).TextEditor;
 var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
 var Pikaday = ($__pikaday__ = _dereq_("pikaday"), $__pikaday__ && $__pikaday__.__esModule && $__pikaday__ || {default: $__pikaday__}).default;
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
 var DateEditor = function DateEditor(hotInstance) {
   this.$datePicker = null;
   this.datePicker = null;
@@ -8179,6 +8387,8 @@ var $DateEditor = DateEditor;
   }
 }, {}, TextEditor);
 ;
+Handsontable.editors = Handsontable.editors || {};
+Handsontable.editors.DateEditor = DateEditor;
 registerEditor('date', DateEditor);
 
 //# 
@@ -9165,7 +9375,8 @@ TextEditor.prototype.refreshDimensions = function() {
       containerOffset = offset(this.instance.rootElement),
       scrollableContainer = getScrollableElement(this.TD),
       totalRowsCount = this.instance.countRows(),
-      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
+      editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
+      editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
       editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
       settings = this.instance.getSettings(),
       rowHeadersCount = this.instance.hasRowHeaders(),
@@ -9820,6 +10031,9 @@ function getNormalizedDate(dateString) {
 },{}],46:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
+  getParent: {get: function() {
+      return getParent;
+    }},
   closest: {get: function() {
       return closest;
     }},
@@ -9961,6 +10175,24 @@ var $__0 = ($___46__46__47_browser__ = _dereq_("../browser"), $___46__46__47_bro
     isIE9 = $__0.isIE9,
     isSafari = $__0.isSafari;
 var hasCaptionProblem = ($___46__46__47_feature__ = _dereq_("../feature"), $___46__46__47_feature__ && $___46__46__47_feature__.__esModule && $___46__46__47_feature__ || {default: $___46__46__47_feature__}).hasCaptionProblem;
+function getParent(element) {
+  var level = arguments[1] !== (void 0) ? arguments[1] : 0;
+  var iteration = -1;
+  var parent = null;
+  while (element != null) {
+    if (iteration === level) {
+      parent = element;
+      break;
+    }
+    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      element = element.host;
+    } else {
+      iteration++;
+      element = element.parentNode;
+    }
+  }
+  return parent;
+}
 function closest(element, nodes, until) {
   while (element != null && element !== until) {
     if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
@@ -10449,17 +10681,18 @@ function setCaretPosition(element, pos, endPos) {
 }
 var cachedScrollbarWidth;
 function walkontableCalculateScrollbarWidth() {
-  var inner = document.createElement('p');
-  inner.style.width = '100%';
+  var inner = document.createElement('div');
   inner.style.height = '200px';
+  inner.style.width = '100%';
   var outer = document.createElement('div');
+  outer.style.boxSizing = 'content-box';
+  outer.style.height = '150px';
+  outer.style.left = '0px';
+  outer.style.overflow = 'hidden';
   outer.style.position = 'absolute';
   outer.style.top = '0px';
-  outer.style.left = '0px';
-  outer.style.visibility = 'hidden';
   outer.style.width = '200px';
-  outer.style.height = '150px';
-  outer.style.overflow = 'hidden';
+  outer.style.visibility = 'hidden';
   outer.appendChild(inner);
   (document.body || document.documentElement).appendChild(outer);
   var w1 = inner.offsetWidth;
@@ -11284,6 +11517,9 @@ Object.defineProperties(exports, {
   padStart: {get: function() {
       return padStart;
     }},
+  stripTags: {get: function() {
+      return stripTags;
+    }},
   __esModule: {value: true}
 });
 var $__mixed__,
@@ -11370,6 +11606,11 @@ function padStart(string, maxLength) {
   return truncatedString + string;
 }
 ;
+var STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|\/][^>]*>/gi;
+function stripTags(string) {
+  string = string + '';
+  return string.replace(STRIP_TAGS_REGEX, '');
+}
 
 //# 
 },{"mixed":50,"number":51}],55:[function(_dereq_,module,exports){
@@ -11672,7 +11913,7 @@ Object.defineProperties(exports, {
 });
 var $__helpers_47_array__,
     $__helpers_47_object__;
-var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'beforeContextMenuSetItems', 'afterDropdownMenuDefaultOptions', 'beforeDropdownMenuSetItems', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'beforeCreateCol', 'afterCreateCol', 'beforeCreateRow', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterSetDataAtCell', 'afterSetDataAtRowProp', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeOnCellMouseOver', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeStart', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'beforeValueRender', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'unmodifyRow', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'modifyData', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter', 'modifyColumnHeaderHeight', 'beforeUndo', 'afterUndo', 'beforeRedo', 'afterRedo', 'modifyRowHeaderWidth', 'beforeAutofillInsidePopulate', 'modifyTransformStart', 'modifyTransformEnd', 'afterModifyTransformStart', 'afterModifyTransformEnd', 'beforeValueRender', 'afterViewportRowCalculatorOverride', 'afterViewportColumnCalculatorOverride', 'afterPluginsInitialized', 'manualRowHeights', 'skipLengthCache', 'afterTrimRow', 'afterUntrimRow', 'afterDropdownMenuShow', 'afterDropdownMenuHide', 'hiddenRow', 'hiddenColumn', 'beforeAddChild', 'afterAddChild', 'beforeDetachChild', 'afterDetachChild'];
+var REGISTERED_HOOKS = ['afterCellMetaReset', 'afterChange', 'afterChangesObserved', 'afterContextMenuDefaultOptions', 'beforeContextMenuSetItems', 'afterDropdownMenuDefaultOptions', 'beforeDropdownMenuSetItems', 'afterContextMenuHide', 'afterContextMenuShow', 'afterCopyLimit', 'beforeCreateCol', 'afterCreateCol', 'beforeCreateRow', 'afterCreateRow', 'afterDeselect', 'afterDestroy', 'afterDocumentKeyDown', 'afterGetCellMeta', 'afterGetColHeader', 'afterGetRowHeader', 'afterInit', 'afterLoadData', 'afterMomentumScroll', 'afterOnCellCornerMouseDown', 'afterOnCellMouseDown', 'afterOnCellMouseOver', 'afterRemoveCol', 'afterRemoveRow', 'afterRender', 'beforeRenderer', 'afterRenderer', 'afterScrollHorizontally', 'afterScrollVertically', 'afterSelection', 'afterSelectionByProp', 'afterSelectionEnd', 'afterSelectionEndByProp', 'afterSetCellMeta', 'afterSetDataAtCell', 'afterSetDataAtRowProp', 'afterUpdateSettings', 'afterValidate', 'beforeAutofill', 'beforeCellAlignment', 'beforeChange', 'beforeChangeRender', 'beforeDrawBorders', 'beforeGetCellMeta', 'beforeInit', 'beforeInitWalkontable', 'beforeKeyDown', 'beforeOnCellMouseDown', 'beforeOnCellMouseOver', 'beforeRemoveCol', 'beforeRemoveRow', 'beforeRender', 'beforeSetRangeStart', 'beforeSetRangeEnd', 'beforeTouchScroll', 'beforeValidate', 'beforeValueRender', 'construct', 'init', 'modifyCol', 'unmodifyCol', 'unmodifyRow', 'modifyColHeader', 'modifyColWidth', 'modifyRow', 'modifyRowHeader', 'modifyRowHeight', 'modifyData', 'modifyRowData', 'persistentStateLoad', 'persistentStateReset', 'persistentStateSave', 'beforeColumnSort', 'afterColumnSort', 'afterAutofillApplyValues', 'modifyCopyableRange', 'beforeColumnMove', 'afterColumnMove', 'beforeRowMove', 'afterRowMove', 'beforeColumnResize', 'afterColumnResize', 'beforeRowResize', 'afterRowResize', 'afterGetColumnHeaderRenderers', 'afterGetRowHeaderRenderers', 'beforeStretchingColumnWidth', 'beforeFilter', 'afterFilter', 'modifyColumnHeaderHeight', 'beforeUndo', 'afterUndo', 'beforeRedo', 'afterRedo', 'modifyRowHeaderWidth', 'beforeAutofillInsidePopulate', 'modifyTransformStart', 'modifyTransformEnd', 'afterModifyTransformStart', 'afterModifyTransformEnd', 'beforeValueRender', 'afterViewportRowCalculatorOverride', 'afterViewportColumnCalculatorOverride', 'afterPluginsInitialized', 'manualRowHeights', 'skipLengthCache', 'afterTrimRow', 'afterUntrimRow', 'afterDropdownMenuShow', 'afterDropdownMenuHide', 'hiddenRow', 'hiddenColumn', 'beforeAddChild', 'afterAddChild', 'beforeDetachChild', 'afterDetachChild', 'afterBeginEditing'];
 var arrayEach = ($__helpers_47_array__ = _dereq_("helpers/array"), $__helpers_47_array__ && $__helpers_47_array__.__esModule && $__helpers_47_array__ || {default: $__helpers_47_array__}).arrayEach;
 var objectEach = ($__helpers_47_object__ = _dereq_("helpers/object"), $__helpers_47_object__ && $__helpers_47_object__.__esModule && $__helpers_47_object__ || {default: $__helpers_47_object__}).objectEach;
 var Hooks = function Hooks() {
@@ -12948,22 +13189,24 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47__46__46__47_browser__,
+    $__moment__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__95_base__,
     $___46__46__47__46__46__47_plugins__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
-var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
-    addClass = $__1.addClass,
-    closest = $__1.closest,
-    hasClass = $__1.hasClass,
-    index = $__1.index,
-    removeClass = $__1.removeClass;
-var $__2 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
-    arrayEach = $__2.arrayEach,
-    arrayMap = $__2.arrayMap,
-    arrayReduce = $__2.arrayReduce;
+var moment = ($__moment__ = _dereq_("moment"), $__moment__ && $__moment__.__esModule && $__moment__ || {default: $__moment__}).default;
+var $__2 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
+    addClass = $__2.addClass,
+    closest = $__2.closest,
+    hasClass = $__2.hasClass,
+    index = $__2.index,
+    removeClass = $__2.removeClass;
+var $__3 = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}),
+    arrayEach = $__3.arrayEach,
+    arrayMap = $__3.arrayMap,
+    arrayReduce = $__3.arrayReduce;
 var eventManagerObject = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).eventManager;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
@@ -12980,7 +13223,7 @@ var $ColumnSorting = ColumnSorting;
     return !!(this.hot.getSettings().columnSorting);
   },
   enablePlugin: function() {
-    var $__6 = this;
+    var $__7 = this;
     if (this.enabled) {
       return;
     }
@@ -12994,25 +13237,25 @@ var $ColumnSorting = ColumnSorting;
       this.enableObserveChangesPlugin();
     }
     this.addHook('afterTrimRow', (function(row) {
-      return $__6.sort();
+      return $__7.sort();
     }));
     this.addHook('afterUntrimRow', (function(row) {
-      return $__6.sort();
+      return $__7.sort();
     }));
     this.addHook('modifyRow', (function(row) {
-      return $__6.translateRow(row);
+      return $__7.translateRow(row);
     }));
     this.addHook('unmodifyRow', (function(row) {
-      return $__6.untranslateRow(row);
+      return $__7.untranslateRow(row);
     }));
     this.addHook('afterUpdateSettings', (function() {
-      return $__6.onAfterUpdateSettings();
+      return $__7.onAfterUpdateSettings();
     }));
     this.addHook('afterGetColHeader', (function(col, TH) {
-      return $__6.getColHeader(col, TH);
+      return $__7.getColHeader(col, TH);
     }));
     this.addHook('afterOnCellMouseDown', (function(event, target) {
-      return $__6.onAfterOnCellMouseDown(event, target);
+      return $__7.onAfterOnCellMouseDown(event, target);
     }));
     this.addHook('afterCreateRow', function() {
       _this.afterCreateRow.apply(_this, arguments);
@@ -13021,12 +13264,12 @@ var $ColumnSorting = ColumnSorting;
       _this.afterRemoveRow.apply(_this, arguments);
     });
     this.addHook('afterInit', (function() {
-      return $__6.sortBySettings();
+      return $__7.sortBySettings();
     }));
     this.addHook('afterLoadData', (function() {
-      $__6.hot.sortIndex = [];
-      if ($__6.hot.view) {
-        $__6.sortBySettings();
+      $__7.hot.sortIndex = [];
+      if ($__7.hot.view) {
+        $__7.sortBySettings();
       }
     }));
     if (this.hot.view) {
@@ -13121,7 +13364,7 @@ var $ColumnSorting = ColumnSorting;
       _this.hot.updateSettings({observeChanges: true});
     }, 0));
   },
-  defaultSort: function(sortOrder) {
+  defaultSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -13155,7 +13398,7 @@ var $ColumnSorting = ColumnSorting;
       return 0;
     };
   },
-  dateSort: function(sortOrder) {
+  dateSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
@@ -13166,18 +13409,24 @@ var $ColumnSorting = ColumnSorting;
       if (b[1] === null || b[1] === '') {
         return -1;
       }
-      var aDate = new Date(a[1]);
-      var bDate = new Date(b[1]);
-      if (aDate < bDate) {
+      var aDate = moment(a[1], columnMeta.dateFormat);
+      var bDate = moment(b[1], columnMeta.dateFormat);
+      if (!aDate.isValid()) {
+        return 1;
+      }
+      if (!bDate.isValid()) {
+        return -1;
+      }
+      if (bDate.isAfter(aDate)) {
         return sortOrder ? -1 : 1;
       }
-      if (aDate > bDate) {
+      if (bDate.isBefore(aDate)) {
         return sortOrder ? 1 : -1;
       }
       return 0;
     };
   },
-  numericSort: function(sortOrder) {
+  numericSort: function(sortOrder, columnMeta) {
     return function(a, b) {
       var parsedA = parseFloat(a[1]);
       var parsedB = parseFloat(b[1]);
@@ -13226,9 +13475,9 @@ var $ColumnSorting = ColumnSorting;
           sortFunction = this.defaultSort;
       }
     }
-    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
-    for (var i$__8 = this.hot.sortIndex.length; i$__8 < this.hot.countRows(); i$__8++) {
-      this.hot.sortIndex.push([i$__8, this.hot.getDataAtCell(i$__8, this.hot.sortColumn)]);
+    this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder, colMeta));
+    for (var i$__9 = this.hot.sortIndex.length; i$__9 < this.hot.countRows(); i$__9++) {
+      this.hot.sortIndex.push([i$__9, this.hot.getDataAtCell(i$__9, this.hot.sortColumn)]);
     }
     this.hot.sortingEnabled = true;
   },
@@ -13340,7 +13589,7 @@ var $ColumnSorting = ColumnSorting;
 registerPlugin('columnSorting', ColumnSorting);
 
 //# 
-},{"_base":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":60}],66:[function(_dereq_,module,exports){
+},{"_base":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"moment":undefined,"plugins":60}],66:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CommentEditor: {get: function() {
@@ -13353,8 +13602,7 @@ var addClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_
 var CommentEditor = function CommentEditor() {
   this.editor = this.createEditor();
   this.editorStyle = this.editor.style;
-  this.editorStyle.position = 'absolute';
-  this.editorStyle.zIndex = 100;
+  this.hidden = true;
   this.hide();
 };
 var $CommentEditor = CommentEditor;
@@ -13363,11 +13611,29 @@ var $CommentEditor = CommentEditor;
     this.editorStyle.left = x + 'px';
     this.editorStyle.top = y + 'px';
   },
+  setSize: function(width, height) {
+    if (width && height) {
+      var input = this.getInputElement();
+      input.style.width = width + 'px';
+      input.style.height = height + 'px';
+    }
+  },
+  resetSize: function() {
+    var input = this.getInputElement();
+    input.style.width = '';
+    input.style.height = '';
+  },
+  setReadOnlyState: function(state) {
+    var input = this.getInputElement();
+    input.readOnly = state;
+  },
   show: function() {
     this.editorStyle.display = 'block';
+    this.hidden = false;
   },
   hide: function() {
     this.editorStyle.display = 'none';
+    this.hidden = true;
   },
   isVisible: function() {
     return this.editorStyle.display === 'block';
@@ -13430,6 +13696,7 @@ var $CommentEditor = CommentEditor;
 //# 
 },{"helpers/dom/element":46}],67:[function(_dereq_,module,exports){
 "use strict";
+var $__13;
 Object.defineProperties(exports, {
   Comments: {get: function() {
       return Comments;
@@ -13438,24 +13705,39 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47__46__46__47_browser__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47_helpers_47_object__,
+    $___46__46__47__46__46__47_helpers_47_function__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $___46__46__47__46__46__47_plugins__,
     $___46__46__47__95_base__,
-    $__commentEditor__;
+    $__commentEditor__,
+    $___46__46__47_contextMenu_47_utils__;
 var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
 var $__1 = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__1.addClass,
     closest = $__1.closest,
-    getWindowScrollLeft = $__1.getWindowScrollLeft,
-    getWindowScrollTop = $__1.getWindowScrollTop,
+    isChildOf = $__1.isChildOf,
     hasClass = $__1.hasClass,
-    offset = $__1.offset;
+    offset = $__1.offset,
+    outerWidth = $__1.outerWidth,
+    outerHeight = $__1.outerHeight,
+    getScrollableElement = $__1.getScrollableElement;
+var deepExtend = ($___46__46__47__46__46__47_helpers_47_object__ = _dereq_("helpers/object"), $___46__46__47__46__46__47_helpers_47_object__ && $___46__46__47__46__46__47_helpers_47_object__.__esModule && $___46__46__47__46__46__47_helpers_47_object__ || {default: $___46__46__47__46__46__47_helpers_47_object__}).deepExtend;
+var debounce = ($___46__46__47__46__46__47_helpers_47_function__ = _dereq_("helpers/function"), $___46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47_helpers_47_function__ || {default: $___46__46__47__46__46__47_helpers_47_function__}).debounce;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ = _dereq_("3rdparty/walkontable/src/cell/coords"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
 var CommentEditor = ($__commentEditor__ = _dereq_("commentEditor"), $__commentEditor__ && $__commentEditor__.__esModule && $__commentEditor__ || {default: $__commentEditor__}).CommentEditor;
+var $__9 = ($___46__46__47_contextMenu_47_utils__ = _dereq_("contextMenu/utils"), $___46__46__47_contextMenu_47_utils__ && $___46__46__47_contextMenu_47_utils__.__esModule && $___46__46__47_contextMenu_47_utils__ || {default: $___46__46__47_contextMenu_47_utils__}),
+    checkSelectionConsistency = $__9.checkSelectionConsistency,
+    markLabelAsSelected = $__9.markLabelAsSelected;
+var privatePool = new WeakMap();
+var META_COMMENT = 'comment';
+var META_COMMENT_VALUE = 'value';
+var META_STYLE = 'style';
+var META_READONLY = 'readOnly';
 var Comments = function Comments(hotInstance) {
   $traceurRuntime.superConstructor($Comments).call(this, hotInstance);
   this.editor = null;
@@ -13464,14 +13746,23 @@ var Comments = function Comments(hotInstance) {
   this.mouseDown = false;
   this.contextMenuEvent = false;
   this.timer = null;
+  this.displayDelay = 250;
+  privatePool.set(this, {
+    tempEditorDimensions: {},
+    cellBelowCursor: null
+  });
 };
 var $Comments = Comments;
-($traceurRuntime.createClass)(Comments, {
-  isEnabled: function() {
-    return this.hot.getSettings().comments;
+($traceurRuntime.createClass)(Comments, ($__13 = {}, Object.defineProperty($__13, "isEnabled", {
+  value: function() {
+    return !!this.hot.getSettings().comments;
   },
-  enablePlugin: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "enablePlugin", {
+  value: function() {
+    var $__10 = this;
     if (this.enabled) {
       return;
     }
@@ -13482,219 +13773,425 @@ var $Comments = Comments;
       this.eventManager = new EventManager(this);
     }
     this.addHook('afterContextMenuDefaultOptions', (function(options) {
-      return $__7.addToContextMenu(options);
+      return $__10.addToContextMenu(options);
     }));
     this.addHook('afterRenderer', (function(TD, row, col, prop, value, cellProperties) {
-      return $__7.onAfterRenderer(TD, cellProperties);
+      return $__10.onAfterRenderer(TD, cellProperties);
     }));
     this.addHook('afterScrollHorizontally', (function() {
-      return $__7.refreshEditorPosition();
+      return $__10.hide();
     }));
     this.addHook('afterScrollVertically', (function() {
-      return $__7.refreshEditorPosition();
+      return $__10.hide();
     }));
-    this.addHook('afterColumnResize', (function() {
-      return $__7.refreshEditorPosition();
-    }));
-    this.addHook('afterRowResize', (function() {
-      return $__7.refreshEditorPosition();
+    this.addHook('afterBeginEditing', (function(args) {
+      return $__10.onAfterBeginEditing(args);
     }));
     this.registerListeners();
     $traceurRuntime.superGet(this, $Comments.prototype, "enablePlugin").call(this);
   },
-  disablePlugin: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "disablePlugin", {
+  value: function() {
     $traceurRuntime.superGet(this, $Comments.prototype, "disablePlugin").call(this);
   },
-  registerListeners: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "registerListeners", {
+  value: function() {
+    var $__10 = this;
     this.eventManager.addEventListener(document, 'mouseover', (function(event) {
-      return $__7.onMouseOver(event);
+      return $__10.onMouseOver(event);
     }));
     this.eventManager.addEventListener(document, 'mousedown', (function(event) {
-      return $__7.onMouseDown(event);
-    }));
-    this.eventManager.addEventListener(document, 'mousemove', (function(event) {
-      return $__7.onMouseMove(event);
+      return $__10.onMouseDown(event);
     }));
     this.eventManager.addEventListener(document, 'mouseup', (function(event) {
-      return $__7.onMouseUp(event);
+      return $__10.onMouseUp(event);
     }));
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', (function(event) {
-      return $__7.onEditorBlur(event);
+      return $__10.onEditorBlur(event);
+    }));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', (function(event) {
+      return $__10.onEditorMouseDown(event);
+    }));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', (function(event) {
+      return $__10.onEditorMouseUp(event);
     }));
   },
-  setRange: function(range) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setRange", {
+  value: function(range) {
     this.range = range;
   },
-  clearRange: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "clearRange", {
+  value: function() {
     this.range = {};
   },
-  targetIsCellWithComment: function(event) {
-    return hasClass(event.target, 'htCommentCell') && closest(event.target, [this.hot.rootElement]) ? true : false;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "targetIsCellWithComment", {
+  value: function(event) {
+    var closestCell = closest(event.target, 'TD', 'TBODY');
+    return closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]) ? true : false;
   },
-  targetIsCommentTextArea: function(event) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "targetIsCommentTextArea", {
+  value: function(event) {
     return this.editor.getInputElement() === event.target;
   },
-  saveComment: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setComment", {
+  value: function(value) {
+    var $__13;
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    var comment = this.editor.getValue();
+    var editorValue = this.editor.getValue();
+    var comment = '';
+    if (value != null) {
+      comment = value;
+    } else if (editorValue != null) {
+      comment = editorValue;
+    }
     var row = this.range.from.row;
     var col = this.range.from.col;
-    this.hot.setCellMeta(row, col, 'comment', comment);
+    this.updateCommentMeta(row, col, ($__13 = {}, Object.defineProperty($__13, META_COMMENT_VALUE, {
+      value: comment,
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__13));
     this.hot.render();
   },
-  saveCommentAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "setCommentAtCell", {
+  value: function(row, col, value) {
     this.setRange({from: new WalkontableCellCoords(row, col)});
-    this.saveComment();
+    this.setComment(value);
   },
-  removeComment: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "removeComment", {
+  value: function() {
+    var forceRender = arguments[0] !== (void 0) ? arguments[0] : true;
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    this.hot.removeCellMeta(this.range.from.row, this.range.from.col, 'comment');
-    this.hot.render();
+    this.hot.getCellMeta(this.range.from.row, this.range.from.col)[META_COMMENT] = void 0;
+    if (forceRender) {
+      this.hot.render();
+    }
     this.hide();
   },
-  removeCommentAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "removeCommentAtCell", {
+  value: function(row, col) {
+    var forceRender = arguments[2] !== (void 0) ? arguments[2] : true;
     this.setRange({from: new WalkontableCellCoords(row, col)});
-    this.removeComment();
+    this.removeComment(forceRender);
   },
-  show: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getComment", {
+  value: function() {},
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getCommentAtCell", {
+  value: function(row, column) {},
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "show", {
+  value: function() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
     var meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
-    this.refreshEditorPosition(true);
-    this.editor.setValue(meta.comment || '');
-    this.editor.show();
+    this.refreshEditor(true);
+    this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
+    if (this.editor.hidden) {
+      this.editor.show();
+    }
     return true;
   },
-  showAtCell: function(row, col) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "showAtCell", {
+  value: function(row, col) {
     this.setRange({from: new WalkontableCellCoords(row, col)});
     return this.show();
   },
-  hide: function() {
-    this.editor.hide();
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "hide", {
+  value: function() {
+    if (!this.editor.hidden) {
+      this.editor.hide();
+    }
   },
-  refreshEditorPosition: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "refreshEditor", {
+  value: function() {
     var force = arguments[0] !== (void 0) ? arguments[0] : false;
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
+    var scrollableElement = getScrollableElement(this.hot.view.wt.wtTable.TABLE);
     var TD = this.hot.view.wt.wtTable.getCell(this.range.from);
+    var row = this.range.from.row;
+    var column = this.range.from.col;
     var cellOffset = offset(TD);
-    var lastColWidth = this.hot.getColWidth(this.range.from.col);
-    var cellTopOffset = cellOffset.top;
+    var lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
+    var cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     var cellLeftOffset = cellOffset.left;
-    var verticalCompensation = 0;
-    var horizontalCompensation = 0;
-    if (this.hot.view.wt.wtViewport.hasVerticalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
       cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
-      verticalCompensation = 20;
     }
-    if (this.hot.view.wt.wtViewport.hasHorizontalScroll()) {
+    if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
       cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-      horizontalCompensation = 20;
     }
     var x = cellLeftOffset + lastColWidth;
     var y = cellTopOffset;
-    var rect = this.hot.view.wt.wtTable.holder.getBoundingClientRect();
-    var holderPos = {
-      left: rect.left + getWindowScrollLeft() + horizontalCompensation,
-      right: rect.right + getWindowScrollLeft() - 15,
-      top: rect.top + getWindowScrollTop() + verticalCompensation,
-      bottom: rect.bottom + getWindowScrollTop()
-    };
-    if (x <= holderPos.left || x > holderPos.right || y <= holderPos.top || y > holderPos.bottom) {
-      this.hide();
+    var commentStyle = this.getCommentMeta(row, column, META_STYLE);
+    var readOnly = this.getCommentMeta(row, column, META_READONLY);
+    if (commentStyle) {
+      this.editor.setSize(commentStyle.width, commentStyle.height);
     } else {
-      this.editor.setPosition(x, y);
+      this.editor.resetSize();
     }
+    this.editor.setReadOnlyState(readOnly);
+    this.editor.setPosition(x, y);
   },
-  onMouseDown: function(event) {
-    this.mouseDown = true;
-    if (!this.hot.view || !this.hot.view.wt) {
-      return;
-    }
-    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event) && !this.targetIsCellWithComment(event)) {
-      this.hide();
-    }
-    this.contextMenuEvent = false;
-  },
-  onMouseOver: function(event) {
-    if (this.mouseDown || this.editor.isFocused()) {
-      return;
-    }
-    if (this.targetIsCellWithComment(event)) {
-      var coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
-      var range = {from: new WalkontableCellCoords(coordinates.row, coordinates.col)};
-      this.setRange(range);
-      this.show();
-    } else if (!this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
-      this.hide();
-    }
-  },
-  onMouseMove: function(event) {
-    var $__7 = this;
-    if (this.targetIsCommentTextArea(event)) {
-      this.mouseDown = true;
-      clearTimeout(this.timer);
-      this.timer = setTimeout((function() {
-        $__7.mouseDown = false;
-      }), 200);
-    }
-  },
-  onMouseUp: function(event) {
-    this.mouseDown = false;
-  },
-  onAfterRenderer: function(TD, cellProperties) {
-    if (cellProperties.comment) {
-      addClass(TD, cellProperties.commentedCellClassName);
-    }
-  },
-  onEditorBlur: function(event) {
-    this.saveComment();
-  },
-  checkSelectionCommentsConsistency: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "checkSelectionCommentsConsistency", {
+  value: function() {
     var selected = this.hot.getSelectedRange();
     if (!selected) {
       return false;
     }
     var hasComment = false;
     var cell = selected.from;
-    if (this.hot.getCellMeta(cell.row, cell.col).comment) {
+    if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
     }
     return hasComment;
   },
-  onContextMenuAddComment: function() {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "updateCommentMeta", {
+  value: function(row, column, metaObject) {
+    var $__13;
+    var cellMeta = this.hot.getCellMeta(row, column);
+    var newObj = ($__13 = {}, Object.defineProperty($__13, META_COMMENT, {
+      value: metaObject,
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__13);
+    deepExtend(cellMeta, newObj);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "getCommentMeta", {
+  value: function(row, column, property) {
+    var cellMeta = this.hot.getCellMeta(row, column);
+    if (!cellMeta[META_COMMENT]) {
+      return void 0;
+    }
+    return cellMeta[META_COMMENT][property];
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseDown", {
+  value: function(event) {
+    this.mouseDown = true;
+    if (!this.hot.view || !this.hot.view.wt) {
+      return;
+    }
+    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event)) {
+      var eventCell = closest(event.target, 'TD', 'TBODY');
+      var coordinates = null;
+      if (eventCell) {
+        coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+      }
+      if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
+        this.hide();
+      }
+    }
+    this.contextMenuEvent = false;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseOver", {
+  value: function(event) {
+    var $__10 = this;
+    if (this.mouseDown || this.editor.isFocused()) {
+      return;
+    }
+    var priv = privatePool.get(this);
+    priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
+    debounce((function() {
+      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target) {
+        return;
+      }
+      if ($__10.targetIsCellWithComment(event)) {
+        var coordinates = $__10.hot.view.wt.wtTable.getCoords(event.target);
+        var range = {from: new WalkontableCellCoords(coordinates.row, coordinates.col)};
+        $__10.setRange(range);
+        $__10.show();
+      } else if (isChildOf(event.target, document) && !$__10.targetIsCommentTextArea(event) && !$__10.editor.isFocused()) {
+        $__10.hide();
+      }
+    }), this.displayDelay)();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onMouseUp", {
+  value: function(event) {
+    this.mouseDown = false;
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onAfterRenderer", {
+  value: function(TD, cellProperties) {
+    if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
+      addClass(TD, cellProperties.commentedCellClassName);
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorBlur", {
+  value: function(event) {
+    this.setComment();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorMouseDown", {
+  value: function(event) {
+    var priv = privatePool.get(this);
+    priv.tempEditorDimensions = {
+      width: outerWidth(event.target),
+      height: outerHeight(event.target)
+    };
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onEditorMouseUp", {
+  value: function(event) {
+    var $__13;
+    var priv = privatePool.get(this);
+    var currentWidth = outerWidth(event.target);
+    var currentHeight = outerHeight(event.target);
+    if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
+      this.updateCommentMeta(this.range.from.row, this.range.from.col, ($__13 = {}, Object.defineProperty($__13, META_STYLE, {
+        value: {
+          width: currentWidth,
+          height: currentHeight
+        },
+        configurable: true,
+        enumerable: true,
+        writable: true
+      }), $__13));
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuAddComment", {
+  value: function() {
+    var $__10 = this;
     var coords = this.hot.getSelectedRange();
     this.contextMenuEvent = true;
     this.setRange({from: coords.from});
     this.show();
     setTimeout((function() {
-      if ($__7.hot) {
-        $__7.hot.deselectCell();
-        $__7.editor.focus();
+      if ($__10.hot) {
+        $__10.hot.deselectCell();
+        $__10.editor.focus();
       }
     }), 10);
   },
-  onContextMenuRemoveComment: function(key, selection) {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuRemoveComment", {
+  value: function(selection) {
     this.contextMenuEvent = true;
-    this.removeCommentAtCell(selection.start.row, selection.start.col);
+    for (var i = selection.start.row; i <= selection.end.row; i++) {
+      for (var j = selection.start.col; j <= selection.end.col; j++) {
+        this.removeCommentAtCell(i, j, false);
+      }
+    }
+    this.hot.render();
   },
-  addToContextMenu: function(defaultOptions) {
-    var $__7 = this;
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onContextMenuMakeReadOnly", {
+  value: function(selection) {
+    var $__13;
+    this.contextMenuEvent = true;
+    for (var i = selection.start.row; i <= selection.end.row; i++) {
+      for (var j = selection.start.col; j <= selection.end.col; j++) {
+        var currentState = !!this.getCommentMeta(i, j, META_READONLY);
+        this.updateCommentMeta(i, j, ($__13 = {}, Object.defineProperty($__13, META_READONLY, {
+          value: !currentState,
+          configurable: true,
+          enumerable: true,
+          writable: true
+        }), $__13));
+      }
+    }
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "addToContextMenu", {
+  value: function(defaultOptions) {
+    var $__10 = this;
     defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR, {
       key: 'commentsAddEdit',
       name: (function() {
-        return $__7.checkSelectionCommentsConsistency() ? 'Edit Comment' : 'Add Comment';
+        return $__10.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
       }),
       callback: (function() {
-        return $__7.onContextMenuAddComment();
+        return $__10.onContextMenuAddComment();
       }),
       disabled: function() {
         return this.getSelected() && !this.selection.selectedHeader.corner ? false : true;
@@ -13702,28 +14199,67 @@ var $Comments = Comments;
     }, {
       key: 'commentsRemove',
       name: function() {
-        return 'Delete Comment';
+        return 'Delete comment';
       },
       callback: (function(key, selection) {
-        return $__7.onContextMenuRemoveComment(key, selection);
+        return $__10.onContextMenuRemoveComment(selection);
       }),
       disabled: (function() {
-        return $__7.hot.selection.selectedHeader.corner || !$__7.checkSelectionCommentsConsistency();
+        return $__10.hot.selection.selectedHeader.corner;
+      })
+    }, {
+      key: 'commentsReadOnly',
+      name: function() {
+        var $__11 = this;
+        var label = 'Read only comment';
+        var hasProperty = checkSelectionConsistency(this.getSelectedRange(), (function(row, col) {
+          var readOnlyProperty = $__11.getCellMeta(row, col)[META_COMMENT];
+          if (readOnlyProperty) {
+            readOnlyProperty = readOnlyProperty[META_READONLY];
+          }
+          if (readOnlyProperty) {
+            return true;
+          }
+        }));
+        if (hasProperty) {
+          label = markLabelAsSelected(label);
+        }
+        return label;
+      },
+      callback: (function(key, selection) {
+        return $__10.onContextMenuMakeReadOnly(selection);
+      }),
+      disabled: (function() {
+        return $__10.hot.selection.selectedHeader.corner || !$__10.checkSelectionCommentsConsistency();
       })
     });
   },
-  destroy: function() {
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "onAfterBeginEditing", {
+  value: function(row, column) {
+    this.hide();
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), Object.defineProperty($__13, "destroy", {
+  value: function() {
     if (this.editor) {
       this.editor.destroy();
     }
     $traceurRuntime.superGet(this, $Comments.prototype, "destroy").call(this);
-  }
-}, {}, BasePlugin);
+  },
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), $__13), {}, BasePlugin);
 ;
 registerPlugin('comments', Comments);
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"_base":61,"browser":23,"commentEditor":66,"eventManager":41,"helpers/dom/element":46,"plugins":60}],68:[function(_dereq_,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":5,"_base":61,"browser":23,"commentEditor":66,"contextMenu/utils":86,"eventManager":41,"helpers/dom/element":46,"helpers/function":49,"helpers/object":52,"plugins":60}],68:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CommandExecutor: {get: function() {
@@ -15696,20 +16232,20 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47_browser__,
+var $___46__46__47__95_base__,
+    $__zeroclipboard__,
     $___46__46__47__46__46__47_helpers_47_dom_47_element__,
     $___46__46__47__46__46__47_helpers_47_array__,
     $___46__46__47__46__46__47_eventManager__,
     $___46__46__47__46__46__47_plugins__,
-    $___46__46__47__95_base__,
-    $__zeroclipboard__;
-var Handsontable = ($___46__46__47__46__46__47_browser__ = _dereq_("browser"), $___46__46__47__46__46__47_browser__ && $___46__46__47__46__46__47_browser__.__esModule && $___46__46__47__46__46__47_browser__ || {default: $___46__46__47__46__46__47_browser__}).default;
+    $___46__46__47_contextMenu_47_predefinedItems__;
+var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
+var ZeroClipboard = ($__zeroclipboard__ = _dereq_("zeroclipboard"), $__zeroclipboard__ && $__zeroclipboard__.__esModule && $__zeroclipboard__ || {default: $__zeroclipboard__}).default;
 var removeClass = ($___46__46__47__46__46__47_helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"), $___46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_element__}).removeClass;
 var arrayEach = ($___46__46__47__46__46__47_helpers_47_array__ = _dereq_("helpers/array"), $___46__46__47__46__46__47_helpers_47_array__ && $___46__46__47__46__46__47_helpers_47_array__.__esModule && $___46__46__47__46__46__47_helpers_47_array__ || {default: $___46__46__47__46__46__47_helpers_47_array__}).arrayEach;
 var EventManager = ($___46__46__47__46__46__47_eventManager__ = _dereq_("eventManager"), $___46__46__47__46__46__47_eventManager__ && $___46__46__47__46__46__47_eventManager__.__esModule && $___46__46__47__46__46__47_eventManager__ || {default: $___46__46__47__46__46__47_eventManager__}).EventManager;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = _dereq_("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
-var BasePlugin = ($___46__46__47__95_base__ = _dereq_("_base"), $___46__46__47__95_base__ && $___46__46__47__95_base__.__esModule && $___46__46__47__95_base__ || {default: $___46__46__47__95_base__}).default;
-var ZeroClipboard = ($__zeroclipboard__ = _dereq_("zeroclipboard"), $__zeroclipboard__ && $__zeroclipboard__.__esModule && $__zeroclipboard__ || {default: $__zeroclipboard__}).default;
+var SEPARATOR = ($___46__46__47_contextMenu_47_predefinedItems__ = _dereq_("contextMenu/predefinedItems"), $___46__46__47_contextMenu_47_predefinedItems__ && $___46__46__47_contextMenu_47_predefinedItems__.__esModule && $___46__46__47_contextMenu_47_predefinedItems__ || {default: $___46__46__47_contextMenu_47_predefinedItems__}).SEPARATOR;
 var ContextMenuCopyPaste = function ContextMenuCopyPaste(hotInstance) {
   $traceurRuntime.superConstructor($ContextMenuCopyPaste).call(this, hotInstance);
   this.eventManager = new EventManager(this);
@@ -15783,7 +16319,7 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
       disabled: function() {
         return this.selection.selectedHeader.corner;
       }
-    }, Handsontable.plugins.ContextMenu.SEPARATOR);
+    }, {name: SEPARATOR});
   },
   onAfterContextMenuShow: function() {
     var $__7 = this;
@@ -15804,6 +16340,9 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   },
   removeCurrentClass: function() {
     var contextMenu = this.hot.getPlugin('contextMenu');
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.current');
       if (element) {
@@ -15815,6 +16354,9 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
   },
   removeZeroClipboardClass: function() {
     var contextMenu = this.hot.getPlugin('contextMenu');
+    if (!contextMenu.enabled) {
+      return;
+    }
     if (contextMenu.menu.isOpened()) {
       var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
       if (element) {
@@ -15828,7 +16370,7 @@ var $ContextMenuCopyPaste = ContextMenuCopyPaste;
 registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);
 
 //# 
-},{"_base":61,"browser":23,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":60,"zeroclipboard":undefined}],88:[function(_dereq_,module,exports){
+},{"_base":61,"contextMenu/predefinedItems":73,"eventManager":41,"helpers/array":42,"helpers/dom/element":46,"plugins":60,"zeroclipboard":undefined}],88:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   CopyPastePlugin: {get: function() {
@@ -16771,6 +17313,8 @@ var ManualColumnMove = function ManualColumnMove(hotInstance) {
   $traceurRuntime.superConstructor($ManualColumnMove).call(this, hotInstance);
   privatePool.set(this, {
     columnsToMove: [],
+    countCols: 0,
+    fixedColumns: 0,
     pressed: void 0,
     disallowMoving: void 0,
     target: {
@@ -16796,9 +17340,6 @@ var $ManualColumnMove = ManualColumnMove;
     if (this.enabled) {
       return;
     }
-    if (this.columnsMapper._arrayMap.length === 0) {
-      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
-    }
     this.addHook('beforeOnCellMouseDown', (function(event, coords, TD, blockCalculations) {
       return $__10.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations);
     }));
@@ -16823,9 +17364,6 @@ var $ManualColumnMove = ManualColumnMove;
     this.addHook('unmodifyCol', (function(column) {
       return $__10.onUnmodifyCol(column);
     }));
-    this.initialSettings();
-    this.backlight.build();
-    this.guideline.build();
     this.registerEvents();
     addClass(this.hot.rootElement, CSS_PLUGIN);
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "enablePlugin").call(this);
@@ -16833,6 +17371,7 @@ var $ManualColumnMove = ManualColumnMove;
   updatePlugin: function() {
     this.disablePlugin();
     this.enablePlugin();
+    this.onAfterPluginsInitialized();
     $traceurRuntime.superGet(this, $ManualColumnMove.prototype, "updatePlugin").call(this);
   },
   disablePlugin: function() {
@@ -16877,7 +17416,12 @@ var $ManualColumnMove = ManualColumnMove;
   getColumnsWidth: function(from, to) {
     var width = 0;
     for (var i = from; i < to; i++) {
-      var columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i);
+      var columnWidth = 0;
+      if (i < 0) {
+        columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 0;
+      } else {
+        columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
+      }
       width += columnWidth;
     }
     return width;
@@ -16904,50 +17448,60 @@ var $ManualColumnMove = ManualColumnMove;
     Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnsMove', storedState);
     return storedState.value ? storedState.value : [];
   },
-  prepareColumnsToMoving: function() {
-    var selection = this.hot.getSelectedRange();
+  prepareColumnsToMoving: function(start, end) {
     var selectedColumns = [];
-    if (!selection) {
-      return selectedColumns;
-    }
-    var $__12 = selection,
-        from = $__12.from,
-        to = $__12.to;
-    var start = Math.min(from.col, to.col);
-    var end = Math.max(from.col, to.col);
     rangeEach(start, end, (function(i) {
       selectedColumns.push(i);
     }));
     return selectedColumns;
   },
   refreshPositions: function() {
-    var isRowHeader = !!this.hot.getSettings().rowHeaders;
-    var wtTable = this.hot.view.wt.wtTable;
     var priv = privatePool.get(this);
-    var coords = priv.target.coords;
-    var TD = priv.target.TD;
-    var rootElementOffset = offset(this.hot.rootElement);
-    var tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, coords.col);
-    var mouseOffsetLeft = priv.target.eventPageX - rootElementOffset.left + wtTable.holder.scrollLeft;
+    var firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
+    var lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
+    var wtTable = this.hot.view.wt.wtTable;
+    var scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+    var scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
+    var tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coordsColumn);
+    var mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
     var hiderWidth = wtTable.hider.offsetWidth;
     var tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
     var backlightElemMarginLeft = this.backlight.getOffset().left;
     var backlightElemWidth = this.backlight.getSize().width;
     var rowHeaderWidth = 0;
-    if (isRowHeader) {
+    if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
+      if (priv.coordsColumn < priv.countCols) {
+        priv.coordsColumn++;
+      }
+    }
+    if (priv.hasRowHeaders) {
       rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
-    if (this.isFixedColumnsLeft(coords.col)) {
-      tdOffsetLeft += wtTable.holder.scrollLeft;
+    if (this.isFixedColumnsLeft(priv.coordsColumn)) {
+      tdOffsetLeft += scrollLeft;
     }
     tdOffsetLeft += rowHeaderWidth;
-    if (coords.col < 0) {
-      priv.target.col = 0;
-    } else if (TD.offsetWidth / 2 + tdOffsetLeft <= mouseOffsetLeft) {
-      priv.target.col = coords.col + 1;
-      tdOffsetLeft += TD.offsetWidth;
+    if (priv.coordsColumn < 0) {
+      if (priv.fixedColumns > 0) {
+        priv.target.col = 0;
+      } else {
+        priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      }
+    } else if ((priv.target.TD.offsetWidth / 2 + tdOffsetLeft) <= mouseOffsetLeft) {
+      var newCoordsCol = priv.coordsColumn >= priv.countCols ? priv.countCols - 1 : priv.coordsColumn;
+      priv.target.col = newCoordsCol + 1;
+      tdOffsetLeft += priv.target.TD.offsetWidth;
+      if (priv.target.col > lastVisible) {
+        this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
+      }
     } else {
-      priv.target.col = coords.col;
+      priv.target.col = priv.coordsColumn;
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+        this.hot.scrollViewportTo(void 0, firstVisible - 1);
+      }
+    }
+    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+      this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
     var backlightLeft = mouseOffsetLeft;
     var guidelineLeft = tdOffsetLeft;
@@ -16960,6 +17514,8 @@ var $ManualColumnMove = ManualColumnMove;
       guidelineLeft = hiderWidth - 1;
     } else if (guidelineLeft === 0) {
       guidelineLeft = 1;
+    } else if (scrollableElement.scrollX !== void 0 && priv.coordsColumn < priv.fixedColumns) {
+      guidelineLeft = guidelineLeft - ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
     this.backlight.setPosition(null, backlightLeft);
     this.guideline.setPosition(null, guidelineLeft);
@@ -16981,7 +17537,8 @@ var $ManualColumnMove = ManualColumnMove;
     var isHeaderSelection = this.hot.selection.selectedHeader.cols;
     var selection = this.hot.getSelectedRange();
     var priv = privatePool.get(this);
-    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
+    var isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
+    if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
       priv.pressed = false;
       priv.columnsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
@@ -17002,15 +17559,25 @@ var $ManualColumnMove = ManualColumnMove;
       blockCalculations.column = true;
       priv.pressed = true;
       priv.target.eventPageX = event.pageX;
-      priv.target.coords = coords;
+      priv.coordsColumn = coords.col;
       priv.target.TD = TD;
-      priv.columnsToMove = this.prepareColumnsToMoving();
+      priv.target.col = coords.col;
+      priv.columnsToMove = this.prepareColumnsToMoving(start, end);
+      priv.hasRowHeaders = !!this.hot.getSettings().rowHeaders;
+      priv.countCols = this.hot.countCols();
+      priv.fixedColumns = this.hot.getSettings().fixedColumnsLeft;
+      priv.rootElementOffset = offset(this.hot.rootElement).left;
+      var countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       var topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
-      this.backlight.setPosition(topPos);
+      var fixedColumns = coords.col < priv.fixedColumns;
+      var scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+      var wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
+      var mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
+      var leftOffset = Math.abs(this.getColumnsWidth(start, coords.col) + mouseOffset);
+      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start) + leftOffset);
       this.backlight.setSize(this.getColumnsWidth(start, end + 1), wtTable.hider.offsetHeight - topPos);
-      this.backlight.setOffset(null, (this.getColumnsWidth(start, coords.col) + event.layerX) * -1);
+      this.backlight.setOffset(null, leftOffset * -1);
       addClass(this.hot.rootElement, CSS_ON_MOVING);
-      this.refreshPositions();
     } else {
       removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
       priv.pressed = false;
@@ -17046,24 +17613,25 @@ var $ManualColumnMove = ManualColumnMove;
     blockCalculations.row = true;
     blockCalculations.column = true;
     blockCalculations.cell = true;
-    priv.target.coords = coords;
+    priv.coordsColumn = coords.col;
     priv.target.TD = TD;
   },
   onMouseUp: function() {
     var priv = privatePool.get(this);
+    priv.coordsColumn = void 0;
     priv.pressed = false;
     priv.backlightWidth = 0;
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
     if (this.hot.selection.selectedHeader.cols) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
-    if (priv.columnsToMove.length < 1) {
+    if (priv.columnsToMove.length < 1 || priv.target.col === void 0 || priv.columnsToMove.indexOf(priv.target.col) > -1) {
       return;
     }
-    var target = priv.target.col;
-    this.moveColumns(priv.columnsToMove, target);
+    this.moveColumns(priv.columnsToMove, priv.target.col);
     this.persistentStateSave();
     this.hot.render();
+    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     if (!priv.disallowMoving) {
       var selectionStart = this.columnsMapper.getIndexByValue(priv.columnsToMove[0]);
       var selectionEnd = this.columnsMapper.getIndexByValue(priv.columnsToMove[priv.columnsToMove.length - 1]);
@@ -17096,12 +17664,37 @@ var $ManualColumnMove = ManualColumnMove;
   },
   onModifyCol: function(column, source) {
     if (source !== this.pluginName) {
-      column = this.columnsMapper.getValueByIndex(column);
+      var columnInMapper = this.columnsMapper.getValueByIndex(column);
+      column = columnInMapper === null ? column : columnInMapper;
     }
     return column;
   },
   onUnmodifyCol: function(column) {
-    return this.columnsMapper.getIndexByValue(column);
+    var indexInMapper = this.columnsMapper.getIndexByValue(column);
+    column = indexInMapper === null ? column : indexInMapper;
+    return column;
+  },
+  onAfterPluginsInitialized: function() {
+    var countCols = this.hot.countCols();
+    var columnsMapperLen = this.columnsMapper._arrayMap.length;
+    if (columnsMapperLen === 0) {
+      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
+    } else if (columnsMapperLen < countCols) {
+      var diff = countCols - columnsMapperLen;
+      this.columnsMapper.insertItems(columnsMapperLen, diff);
+    } else if (columnsMapperLen > countCols) {
+      var maxIndex = countCols - 1;
+      var columnsToRemove = [];
+      arrayEach(this.columnsMapper._arrayMap, (function(value, index, array) {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      }));
+      this.columnsMapper.removeItems(columnsToRemove);
+    }
+    this.initialSettings();
+    this.backlight.build();
+    this.guideline.build();
   },
   destroy: function() {
     this.backlight.destroy();
@@ -17789,9 +18382,19 @@ var $ManualRowMove = ManualRowMove;
     return selectedRows;
   },
   refreshPositions: function() {
-    var wtTable = this.hot.view.wt.wtTable;
     var priv = privatePool.get(this);
     var coords = priv.target.coords;
+    var firstVisible = this.hot.view.wt.wtTable.getFirstVisibleRow();
+    var lastVisible = this.hot.view.wt.wtTable.getLastVisibleRow();
+    var fixedRows = this.hot.getSettings().fixedRowsTop;
+    var countRows = this.hot.countRows();
+    if (coords.row < fixedRows && firstVisible > 0) {
+      this.hot.scrollViewportTo(firstVisible - 1);
+    }
+    if (coords.row >= lastVisible && lastVisible < countRows) {
+      this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
+    }
+    var wtTable = this.hot.view.wt.wtTable;
     var TD = priv.target.TD;
     var rootElementOffset = offset(this.hot.rootElement);
     var tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
@@ -17800,11 +18403,14 @@ var $ManualRowMove = ManualRowMove;
     var tbodyOffsetTop = wtTable.TBODY.offsetTop;
     var backlightElemMarginTop = this.backlight.getOffset().top;
     var backlightElemHeight = this.backlight.getSize().height;
+    if ((rootElementOffset.top + wtTable.holder.offsetHeight) < priv.target.eventPageY) {
+      priv.target.coords.row++;
+    }
     if (this.isFixedRowTop(coords.row)) {
       tdOffsetTop += wtTable.holder.scrollTop;
     }
     if (coords.row < 0) {
-      priv.target.row = 0;
+      priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
     } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
       priv.target.row = coords.row + 1;
       tdOffsetTop += coords.row === 0 ? TD.offsetHeight - 1 : TD.offsetHeight;
@@ -17820,6 +18426,13 @@ var $ManualRowMove = ManualRowMove;
     }
     if (tdOffsetTop >= hiderHeight - 1) {
       guidelineTop = hiderHeight - 1;
+    }
+    var topOverlayHeight = 0;
+    if (this.hot.view.wt.wtOverlays.topOverlay) {
+      topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
+    }
+    if (coords.row >= fixedRows && (guidelineTop - wtTable.holder.scrollTop) < topOverlayHeight) {
+      this.hot.scrollViewportTo(coords.row);
     }
     this.backlight.setPosition(backlightTop);
     this.guideline.setPosition(guidelineTop);
@@ -20469,7 +21082,11 @@ var wrapTdContentWithWrapper = function(TD, WRAPPER) {
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
   var WRAPPER = clonableWRAPPER.cloneNode(true);
   var ARROW = clonableARROW.cloneNode(true);
-  getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+  if (cellProperties.allowHtml) {
+    getRenderer('html').apply(this, arguments);
+  } else {
+    getRenderer('text').apply(this, arguments);
+  }
   TD.appendChild(ARROW);
   addClass(TD, 'htAutocomplete');
   if (!TD.firstChild) {
@@ -22487,7 +23104,7 @@ Handsontable.DateValidator = function(value, callback) {
   if (value == null) {
     value = '';
   }
-  var isValidDate = moment(new Date(value)).isValid();
+  var isValidDate = moment(new Date(value)).isValid() || moment(value, dateEditor.defaultDateFormat).isValid();
   var isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
   if (this.allowEmpty && value === '') {
     isValidDate = true;
@@ -22511,15 +23128,14 @@ Handsontable.DateValidator = function(value, callback) {
   callback(valid);
 };
 var correctFormat = function correctFormat(value, dateFormat) {
-  var date = moment(getNormalizedDate(value));
-  var year = date.format('YYYY');
-  var yearNow = moment().format('YYYY');
-  if (year.substr(0, 2) !== yearNow.substr(0, 2)) {
-    if (!value.match(new RegExp(year))) {
-      date.year(year.replace(year.substr(0, 2), yearNow.substr(0, 2)));
-    }
-  } else if (year.length > 4) {
-    date.year((date.year() + '').substr(0, 4));
+  var dateFromDate = moment(getNormalizedDate(value));
+  var dateFromMoment = moment(value, dateFormat);
+  var isAlphanumeric = value.search(/[A-z]/g) > -1;
+  var date;
+  if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) || !dateFromMoment.isValid() || isAlphanumeric) {
+    date = dateFromDate;
+  } else {
+    date = dateFromMoment;
   }
   return date.format(dateFormat);
 };

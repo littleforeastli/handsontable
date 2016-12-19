@@ -29,7 +29,7 @@ function DataMap(instance, priv, GridSettings) {
   this.skipCache = false;
   this.latestSourceRowsCount = 0;
 
-  if (this.dataSource[0]) {
+  if (this.dataSource && this.dataSource[0]) {
     this.duckSchema = this.recursiveDuckSchema(this.dataSource[0]);
   } else {
     this.duckSchema = {};
@@ -209,6 +209,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
 
       } else {
         row = [];
+        /* jshint loopfunc:true */
         rangeEach(colCount - 1, () => row.push(null));
       }
 
@@ -508,7 +509,7 @@ DataMap.prototype.get = function(row, prop) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'get');
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -594,7 +595,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row, dataRow, 'set', source);
+  let modifiedRowData = Handsontable.hooks.run(this.instance, 'modifyRowData', row);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
